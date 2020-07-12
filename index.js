@@ -43,6 +43,29 @@ async function action() {
 
   const pullCount = pulls.length;
   console.log(`There are ${pullCount} Pull Requests`);
+
+  const message = core.getInput(`merged_${pullCount}`);
+  if (!message) {
+    console.log("No action required");
+    return;
+  }
+
+  await octokit.issues.createComment({
+    ...github.context.repo,
+    issue_number: github.context.issue.number,
+    body: message,
+  });
+
+  console.log(stripIndent`
+    Added comment:
+    ${message}
+  `);
+
+  await octokit.issues.addLabels({
+    ...github.context.repo,
+    issue_number: github.context.issue.number,
+    labels: [`merge-milestone`, `merge-milestone:${pullCount}`],
+  });
 }
 
 if (require.main === module) {
